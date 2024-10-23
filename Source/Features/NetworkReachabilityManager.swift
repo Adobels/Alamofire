@@ -64,6 +64,7 @@ open class NetworkReachabilityManager: @unchecked Sendable {
 
     /// A closure executed when the network reachability status changes. The closure takes a single argument: the
     /// network reachability status.
+    @preconcurrency
     public typealias Listener = @Sendable (NetworkReachabilityStatus) -> Void
 
     /// Default `NetworkReachabilityManager` for the zero address and a `listenerQueue` of `.main`.

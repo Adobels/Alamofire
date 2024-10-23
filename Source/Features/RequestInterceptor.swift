@@ -43,6 +43,8 @@ public protocol RequestAdapter: Sendable {
     ///   - urlRequest: The `URLRequest` to adapt.
     ///   - session:    The `Session` that will execute the `URLRequest`.
     ///   - completion: The completion handler that must be called when adaptation is complete.
+
+    @preconcurrency
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping @Sendable (_ result: Result<URLRequest, any Error>) -> Void)
 
     /// Inspects and adapts the specified `URLRequest` in some manner and calls the completion handler with the Result.
@@ -51,6 +53,7 @@ public protocol RequestAdapter: Sendable {
     ///   - urlRequest: The `URLRequest` to adapt.
     ///   - state:      The `RequestAdapterState` associated with the `URLRequest`.
     ///   - completion: The completion handler that must be called when adaptation is complete.
+    @preconcurrency
     func adapt(_ urlRequest: URLRequest, using state: RequestAdapterState, completion: @escaping @Sendable (_ result: Result<URLRequest, any Error>) -> Void)
 }
 
@@ -110,6 +113,7 @@ public protocol RequestRetrier: Sendable {
     ///   - session:    `Session` that produced the `Request`.
     ///   - error:      `Error` encountered while executing the `Request`.
     ///   - completion: Completion closure to be executed when a retry decision has been determined.
+    @preconcurrency
     func retry(_ request: Request, for session: Session, dueTo error: any Error, completion: @escaping @Sendable (RetryResult) -> Void)
 }
 
@@ -134,12 +138,12 @@ extension RequestInterceptor {
 }
 
 /// `RequestAdapter` closure definition.
-public typealias AdaptHandler = @Sendable (_ request: URLRequest,
+@preconcurrency public typealias AdaptHandler = @Sendable (_ request: URLRequest,
                                            _ session: Session,
                                            _ completion: @escaping @Sendable (Result<URLRequest, any Error>) -> Void) -> Void
 
 /// `RequestRetrier` closure definition.
-public typealias RetryHandler = @Sendable (_ request: Request,
+@preconcurrency public typealias RetryHandler = @Sendable (_ request: Request,
                                            _ session: Session,
                                            _ error: any Error,
                                            _ completion: @escaping @Sendable (RetryResult) -> Void) -> Void
@@ -262,6 +266,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
         adapt(urlRequest, for: session, using: adapters, completion: completion)
     }
 
+    @preconcurrency
     private func adapt(_ urlRequest: URLRequest,
                        for session: Session,
                        using adapters: [any RequestAdapter],
@@ -287,6 +292,7 @@ open class Interceptor: @unchecked Sendable, RequestInterceptor {
         adapt(urlRequest, using: state, adapters: adapters, completion: completion)
     }
 
+    @preconcurrency
     private func adapt(_ urlRequest: URLRequest,
                        using state: RequestAdapterState,
                        adapters: [any RequestAdapter],

@@ -33,7 +33,7 @@ public class DataRequest: Request, @unchecked Sendable {
 
     private struct DataMutableState {
         var data: Data?
-        var httpResponseHandler: (queue: DispatchQueue,
+        @preconcurrency var httpResponseHandler: (queue: DispatchQueue,
                                   handler: @Sendable (_ response: HTTPURLResponse,
                                                       _ completionHandler: @escaping @Sendable (ResponseDisposition) -> Void) -> Void)?
     }
@@ -93,6 +93,7 @@ public class DataRequest: Request, @unchecked Sendable {
         updateDownloadProgress()
     }
 
+    @preconcurrency
     func didReceiveResponse(_ response: HTTPURLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
         dataMutableState.read { dataMutableState in
             guard let httpResponseHandler = dataMutableState.httpResponseHandler else {
@@ -239,6 +240,7 @@ public class DataRequest: Request, @unchecked Sendable {
         return self
     }
 
+    @preconcurrency
     private func _response<Serializer: DataResponseSerializerProtocol>(queue: DispatchQueue = .main,
                                                                        responseSerializer: Serializer,
                                                                        completionHandler: @escaping @Sendable (AFDataResponse<Serializer.SerializedObject>) -> Void)
@@ -274,7 +276,7 @@ public class DataRequest: Request, @unchecked Sendable {
                 }
 
                 delegate.retryResult(for: self, dueTo: serializerError) { retryResult in
-                    var didComplete: (@Sendable () -> Void)?
+                    @preconcurrency var didComplete: (@Sendable () -> Void)?
 
                     defer {
                         if let didComplete {

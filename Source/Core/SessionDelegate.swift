@@ -231,6 +231,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
 // MARK: URLSessionDataDelegate
 
 extension SessionDelegate: URLSessionDataDelegate {
+    @preconcurrency 
     open func urlSession(_ session: URLSession,
                          dataTask: URLSessionDataTask,
                          didReceive response: URLResponse,

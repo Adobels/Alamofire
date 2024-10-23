@@ -54,13 +54,14 @@ public struct DeflateRequestCompressor: Sendable, RequestInterceptor {
     /// Behavior to use when the outgoing `URLRequest` already has a `Content-Encoding` header.
     public let duplicateHeaderBehavior: DuplicateHeaderBehavior
     /// Closure which determines whether the outgoing body data should be compressed.
-    public let shouldCompressBodyData: @Sendable (_ bodyData: Data) -> Bool
+    @preconcurrency public let shouldCompressBodyData: @Sendable (_ bodyData: Data) -> Bool
 
     /// Creates an instance with the provided parameters.
     ///
     /// - Parameters:
     ///   - duplicateHeaderBehavior: `DuplicateHeaderBehavior` to use. `.error` by default.
     ///   - shouldCompressBodyData:  Closure which determines whether the outgoing body data should be compressed. `true` by default.
+    @preconcurrency
     public init(duplicateHeaderBehavior: DuplicateHeaderBehavior = .error,
                 shouldCompressBodyData: @escaping @Sendable (_ bodyData: Data) -> Bool = { _ in true }) {
         self.duplicateHeaderBehavior = duplicateHeaderBehavior
@@ -135,6 +136,7 @@ extension RequestInterceptor where Self == DeflateRequestCompressor {
     ///   - shouldCompressBodyData: Closure which determines whether the outgoing body data should be compressed. `true` by default.
     ///
     /// - Returns: The `DeflateRequestCompressor`.
+    @preconcurrency
     public static func deflateCompressor(
         duplicateHeaderBehavior: DeflateRequestCompressor.DuplicateHeaderBehavior = .error,
         shouldCompressBodyData: @escaping @Sendable (_ bodyData: Data) -> Bool = { _ in true }

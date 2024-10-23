@@ -301,12 +301,12 @@ public final class URLEncodedFormEncoder {
         /// Encodes key paths by separating each component with dots. e.g. `parent.child.grandchild`.
         public static let dots = KeyPathEncoding { ".\($0)" }
 
-        private let encoding: @Sendable (_ subkey: String) -> String
+        @preconcurrency private let encoding: @Sendable (_ subkey: String) -> String
 
         /// Creates an instance with the encoding closure called for each sub-key in a key path.
         ///
         /// - Parameter encoding: Closure used to perform the encoding.
-        public init(encoding: @escaping @Sendable (_ subkey: String) -> String) {
+        @preconcurrency public init(encoding: @escaping @Sendable (_ subkey: String) -> String) {
             self.encoding = encoding
         }
 
@@ -324,12 +324,12 @@ public final class URLEncodedFormEncoder {
         /// Encodes `nil` as `null`.
         public static let null = NilEncoding { "null" }
 
-        private let encoding: @Sendable () -> String?
+        @preconcurrency private let encoding: @Sendable () -> String?
 
         /// Creates an instance with the encoding closure called for `nil` values.
         ///
         /// - Parameter encoding: Closure used to perform the encoding.
-        public init(encoding: @escaping @Sendable () -> String?) {
+        @preconcurrency public init(encoding: @escaping @Sendable () -> String?) {
             self.encoding = encoding
         }
 

@@ -197,6 +197,7 @@ extension DataRequest {
     /// - Returns:   The instance.
     @_disfavoredOverload
     @discardableResult
+    @preconcurrency
     public func onHTTPResponse(
         perform handler: @escaping @Sendable (_ response: HTTPURLResponse) async -> ResponseDisposition
     ) -> Self {
@@ -222,6 +223,7 @@ extension DataRequest {
     ///
     /// - Returns:   The instance.
     @discardableResult
+    @preconcurrency
     public func onHTTPResponse(perform handler: @escaping @Sendable (_ response: HTTPURLResponse) async -> Void) -> Self {
         onHTTPResponse { response in
             await handler(response)
@@ -345,6 +347,7 @@ extension DataRequest {
         }
     }
 
+    @preconcurrency
     private func dataTask<Value>(automaticallyCancelling shouldAutomaticallyCancel: Bool,
                                  forResponse onResponse: @Sendable @escaping (@escaping @Sendable (DataResponse<Value, AFError>) -> Void) -> Void)
         -> DataTask<Value> {
@@ -554,6 +557,7 @@ extension DownloadRequest {
         }
     }
 
+    @preconcurrency
     private func downloadTask<Value>(automaticallyCancelling shouldAutomaticallyCancel: Bool,
                                      forResponse onResponse: @Sendable @escaping (@escaping @Sendable (DownloadResponse<Value, AFError>) -> Void) -> Void)
         -> DownloadTask<Value> {
@@ -651,6 +655,7 @@ public struct DataStreamTask: Sendable {
         }
     }
 
+    @preconcurrency
     private func createStream<Success, Failure: Error>(automaticallyCancelling shouldAutomaticallyCancel: Bool = true,
                                                        bufferingPolicy: Stream<Success, Failure>.BufferingPolicy = .unbounded,
                                                        forResponse onResponse: @Sendable @escaping (@escaping @Sendable (DataStreamRequest.Stream<Success, Failure>) -> Void) -> Void)
@@ -717,6 +722,7 @@ extension DataStreamRequest {
     /// - Returns:   The instance.
     @_disfavoredOverload
     @discardableResult
+    @preconcurrency
     public func onHTTPResponse(perform handler: @escaping @Sendable (HTTPURLResponse) async -> ResponseDisposition) -> Self {
         onHTTPResponse(on: underlyingQueue) { response, completionHandler in
             Task {
@@ -740,6 +746,7 @@ extension DataStreamRequest {
     ///
     /// - Returns:   The instance.
     @discardableResult
+    @preconcurrency
     public func onHTTPResponse(perform handler: @escaping @Sendable (HTTPURLResponse) async -> Void) -> Self {
         onHTTPResponse { response in
             await handler(response)
@@ -824,6 +831,7 @@ extension DataStreamRequest {
         }
     }
 
+    @preconcurrency
     private func createStream<Success, Value, Failure: Error>(
         automaticallyCancelling shouldAutomaticallyCancel: Bool,
         bufferingPolicy: StreamOf<Value>.BufferingPolicy,

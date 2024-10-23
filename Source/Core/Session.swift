@@ -217,6 +217,7 @@ open class Session: @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - action:     Closure to perform with all `Request`s.
+    @preconcurrency
     public func withAllRequests(perform action: @escaping @Sendable (Set<Request>) -> Void) {
         rootQueue.async {
             action(self.activeRequests)
@@ -232,6 +233,7 @@ open class Session: @unchecked Sendable {
     /// - Parameters:
     ///   - queue:      `DispatchQueue` on which the completion handler is run. `.main` by default.
     ///   - completion: Closure to be called when all `Request`s have been cancelled.
+    @preconcurrency
     public func cancelAllRequests(completingOnQueue queue: DispatchQueue = .main, completion: (@Sendable () -> Void)? = nil) {
         withAllRequests { requests in
             requests.forEach { $0.cancel() }
@@ -244,7 +246,7 @@ open class Session: @unchecked Sendable {
     // MARK: - DataRequest
 
     /// Closure which provides a `URLRequest` for mutation.
-    public typealias RequestModifier = @Sendable (inout URLRequest) throws -> Void
+    @preconcurrency public typealias RequestModifier = @Sendable (inout URLRequest) throws -> Void
 
     struct RequestConvertible: URLRequestConvertible {
         let url: any URLConvertible
@@ -1132,6 +1134,7 @@ open class Session: @unchecked Sendable {
         }
     }
 
+    @preconcurrency
     func performSetupOperations(for request: Request,
                                 convertible: any URLRequestConvertible,
                                 shouldCreateTask: @escaping @Sendable () -> Bool = { true }) {
@@ -1268,6 +1271,7 @@ extension Session: RequestDelegate {
         activeRequests.remove(request)
     }
 
+    @preconcurrency
     public func retryResult(for request: Request, dueTo error: AFError, completion: @escaping @Sendable (RetryResult) -> Void) {
         guard let retrier = retrier(for: request) else {
             rootQueue.async { completion(.doNotRetry) }
@@ -1286,7 +1290,7 @@ extension Session: RequestDelegate {
 
     public func retryRequest(_ request: Request, withDelay timeDelay: TimeInterval?) {
         rootQueue.async {
-            let retry: @Sendable () -> Void = {
+            @preconcurrency let retry: @Sendable () -> Void = {
                 guard !request.isCancelled else { return }
 
                 request.prepareForRetry()

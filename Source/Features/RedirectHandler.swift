@@ -56,7 +56,7 @@ public struct Redirector {
         /// Do not follow the redirect defined in the response.
         case doNotFollow
         /// Modify the redirect request defined in the response.
-        case modify(@Sendable (_ task: URLSessionTask, _ request: URLRequest, _ response: HTTPURLResponse) -> URLRequest?)
+        @preconcurrency case modify(@Sendable (_ task: URLSessionTask, _ request: URLRequest, _ response: HTTPURLResponse) -> URLRequest?)
     }
 
     /// Returns a `Redirector` with a `.follow` `Behavior`.
@@ -105,6 +105,7 @@ extension RedirectHandler where Self == Redirector {
     ///
     /// - Parameter closure: Closure used to modify the redirect.
     /// - Returns:           The `Redirector`.
+    @preconcurrency
     public static func modify(using closure: @escaping @Sendable (URLSessionTask, URLRequest, HTTPURLResponse) -> URLRequest?) -> Redirector {
         Redirector(behavior: .modify(closure))
     }

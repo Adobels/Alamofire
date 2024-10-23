@@ -50,7 +50,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     ///
     /// - Note: Downloads from a local `file://` `URL`s do not use the `Destination` closure, as those downloads do not
     ///         return an `HTTPURLResponse`. Instead the file is merely moved within the temporary directory.
-    public typealias Destination = @Sendable (_ temporaryURL: URL,
+    @preconcurrency public typealias Destination = @Sendable (_ temporaryURL: URL,
                                               _ response: HTTPURLResponse) -> (destinationURL: URL, options: Options)
 
     /// Creates a download file destination closure which uses the default file manager to move the temporary file to a
@@ -83,7 +83,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
 
     /// Default `URL` creation closure. Creates a `URL` in the temporary directory with `Alamofire_` prepended to the
     /// provided file name.
-    static let defaultDestinationURL: @Sendable (URL) -> URL = { url in
+    @preconcurrency static let defaultDestinationURL: @Sendable (URL) -> URL = { url in
         let filename = "Alamofire_\(url.lastPathComponent)"
         let destination = url.deletingLastPathComponent().appendingPathComponent(filename)
 
@@ -234,6 +234,8 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     ///         available.
     ///
     /// - Returns: The instance.
+    ///
+    @preconcurrency
     @discardableResult
     public func cancel(producingResumeData shouldProduceResumeData: Bool) -> Self {
         cancel(optionallyProducingResumeData: shouldProduceResumeData ? { @Sendable _ in } : nil)
@@ -262,6 +264,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     /// - Parameter completionHandler: Optional resume data handler.
     ///
     /// - Returns:                     The instance.
+    @preconcurrency
     private func cancel(optionallyProducingResumeData completionHandler: (@Sendable (_ resumeData: Data?) -> Void)?) -> Self {
         mutableState.write { mutableState in
             guard mutableState.state.canTransitionTo(.cancelled) else { return }
@@ -361,6 +364,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
         return self
     }
 
+    @preconcurrency
     private func _response<Serializer: DownloadResponseSerializerProtocol>(queue: DispatchQueue = .main,
                                                                            responseSerializer: Serializer,
                                                                            completionHandler: @escaping @Sendable (AFDownloadResponse<Serializer.SerializedObject>) -> Void)
@@ -396,7 +400,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
                 }
 
                 delegate.retryResult(for: self, dueTo: serializerError) { retryResult in
-                    var didComplete: (@Sendable () -> Void)?
+                    @preconcurrency var didComplete: (@Sendable () -> Void)?
 
                     defer {
                         if let didComplete {
@@ -442,6 +446,7 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     ///   - completionHandler:  The code to be executed once the request has finished.
     ///
     /// - Returns:              The request.
+    @preconcurrency
     @discardableResult
     public func response<Serializer: DownloadResponseSerializerProtocol>(queue: DispatchQueue = .main,
                                                                          responseSerializer: Serializer,
@@ -461,6 +466,8 @@ public final class DownloadRequest: Request, @unchecked Sendable {
     ///   - completionHandler:  The code to be executed once the request has finished.
     ///
     /// - Returns:              The request.
+
+    @preconcurrency
     @discardableResult
     public func response<Serializer: ResponseSerializer>(queue: DispatchQueue = .main,
                                                          responseSerializer: Serializer,

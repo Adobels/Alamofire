@@ -72,6 +72,7 @@ import Foundation
             socket?.cancel()
         }
 
+        @preconcurrency
         public func sendPing(respondingOn queue: DispatchQueue = .main, onResponse: @escaping @Sendable (PingResponse) -> Void) {
             socket?.sendPing(respondingOn: queue, onResponse: onResponse)
         }
@@ -131,7 +132,7 @@ import Foundation
     }
 
     struct SocketMutableState {
-        var enqueuedSends: [(message: URLSessionWebSocketTask.Message,
+        @preconcurrency var enqueuedSends: [(message: URLSessionWebSocketTask.Message,
                              queue: DispatchQueue,
                              completionHandler: @Sendable (Result<Void, any Error>) -> Void)] = []
         var handlers: [(queue: DispatchQueue, handler: (_ event: IncomingEvent) -> Void)] = []
@@ -456,6 +457,7 @@ import Foundation
         }
     }
 
+    @preconcurrency 
     func forIncomingEvent(on queue: DispatchQueue, handler: @escaping @Sendable (IncomingEvent) -> Void) -> Self {
         socketMutableState.write { state in
             state.handlers.append((queue: queue, handler: { incomingEvent in

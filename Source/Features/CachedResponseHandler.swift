@@ -55,7 +55,7 @@ public struct ResponseCacher {
         /// Prevents the cached response from being stored in the cache.
         case doNotCache
         /// Modifies the cached response before storing it in the cache.
-        case modify(@Sendable (_ task: URLSessionDataTask, _ cachedResponse: CachedURLResponse) -> CachedURLResponse?)
+        @preconcurrency case modify(@Sendable (_ task: URLSessionDataTask, _ cachedResponse: CachedURLResponse) -> CachedURLResponse?)
     }
 
     /// Returns a `ResponseCacher` with a `.cache` `Behavior`.
@@ -101,6 +101,7 @@ extension CachedResponseHandler where Self == ResponseCacher {
     ///
     /// - Parameter closure: Closure used to modify the `CachedURLResponse`.
     /// - Returns:           The `ResponseCacher`.
+    @preconcurrency
     public static func modify(using closure: @escaping (@Sendable (URLSessionDataTask, CachedURLResponse) -> CachedURLResponse?)) -> ResponseCacher {
         ResponseCacher(behavior: .modify(closure))
     }

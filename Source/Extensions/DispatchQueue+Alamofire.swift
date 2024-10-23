@@ -31,6 +31,7 @@ extension DispatchQueue {
     /// - Parameters:
     ///   - delay:   `TimeInterval` to delay execution.
     ///   - closure: Closure to execute.
+    @preconcurrency 
     func after(_ delay: TimeInterval, execute closure: @escaping @Sendable () -> Void) {
         asyncAfter(deadline: .now() + delay, execute: closure)
     }

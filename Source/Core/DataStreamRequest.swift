@@ -27,7 +27,7 @@ import Foundation
 /// `Request` subclass which streams HTTP response `Data` through a `Handler` closure.
 public final class DataStreamRequest: Request, @unchecked Sendable {
     /// Closure type handling `DataStreamRequest.Stream` values.
-    public typealias Handler<Success, Failure: Error> = @Sendable (Stream<Success, Failure>) throws -> Void
+    @preconcurrency public typealias Handler<Success, Failure: Error> = @Sendable (Stream<Success, Failure>) throws -> Void
 
     /// Type encapsulating an `Event` as it flows through the stream, as well as a `CancellationToken` which can be used
     /// to stop the stream at any time.
@@ -90,14 +90,14 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         /// `OutputStream` bound to the `InputStream` produced by `asInputStream`, if it has been called.
         var outputStream: OutputStream?
         /// Stream closures called as `Data` is received.
-        var streams: [@Sendable (_ data: Data) -> Void] = []
+        @preconcurrency var streams: [@Sendable (_ data: Data) -> Void] = []
         /// Number of currently executing streams. Used to ensure completions are only fired after all streams are
         /// enqueued.
         var numberOfExecutingStreams = 0
         /// Completion calls enqueued while streams are still executing.
-        var enqueuedCompletionEvents: [@Sendable () -> Void] = []
+        @preconcurrency var enqueuedCompletionEvents: [@Sendable () -> Void] = []
         /// Handler for any `HTTPURLResponse`s received.
-        var httpResponseHandler: (queue: DispatchQueue,
+        @preconcurrency var httpResponseHandler: (queue: DispatchQueue,
                                   handler: @Sendable (_ response: HTTPURLResponse,
                                                       _ completionHandler: @escaping @Sendable (ResponseDisposition) -> Void) -> Void)?
     }
@@ -168,6 +168,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
         }
     }
 
+    @preconcurrency
     func didReceiveResponse(_ response: HTTPURLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
         streamMutableState.read { dataMutableState in
             guard let httpResponseHandler = dataMutableState.httpResponseHandler else {
@@ -373,7 +374,7 @@ public final class DataStreamRequest: Request, @unchecked Sendable {
     public func responseStream<Serializer: DataStreamSerializer>(using serializer: Serializer,
                                                                  on queue: DispatchQueue = .main,
                                                                  stream: @escaping Handler<Serializer.SerializedObject, AFError>) -> Self {
-        let parser = { @Sendable [unowned self] (data: Data) in
+        @preconcurrency let parser = { @Sendable [unowned self] (data: Data) in
             serializationQueue.async {
                 // Start work on serialization queue.
                 let result = Result { try serializer.serialize(data) }

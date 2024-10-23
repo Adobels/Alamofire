@@ -93,15 +93,15 @@ public class Request: @unchecked Sendable {
         /// `CachedResponseHandler` provided to handle response caching.
         var cachedResponseHandler: (any CachedResponseHandler)?
         /// Queue and closure called when the `Request` is able to create a cURL description of itself.
-        var cURLHandler: (queue: DispatchQueue, handler: @Sendable (String) -> Void)?
+        @preconcurrency var cURLHandler: (queue: DispatchQueue, handler: @Sendable (String) -> Void)?
         /// Queue and closure called when the `Request` creates a `URLRequest`.
-        var urlRequestHandler: (queue: DispatchQueue, handler: @Sendable (URLRequest) -> Void)?
+        @preconcurrency var urlRequestHandler: (queue: DispatchQueue, handler: @Sendable (URLRequest) -> Void)?
         /// Queue and closure called when the `Request` creates a `URLSessionTask`.
-        var urlSessionTaskHandler: (queue: DispatchQueue, handler: @Sendable (URLSessionTask) -> Void)?
+        @preconcurrency var urlSessionTaskHandler: (queue: DispatchQueue, handler: @Sendable (URLSessionTask) -> Void)?
         /// Response serialization closures that handle response parsing.
-        var responseSerializers: [@Sendable () -> Void] = []
+        @preconcurrency var responseSerializers: [@Sendable () -> Void] = []
         /// Response serialization completion closures executed once all response serializers are complete.
-        var responseSerializerCompletions: [@Sendable () -> Void] = []
+        @preconcurrency var responseSerializerCompletions: [@Sendable () -> Void] = []
         /// Whether response serializer processing is finished.
         var responseSerializerProcessingFinished = false
         /// `URLCredential` used for authentication challenges.
@@ -143,7 +143,7 @@ public class Request: @unchecked Sendable {
     // MARK: Progress
 
     /// Closure type executed when monitoring the upload or download progress of a request.
-    public typealias ProgressHandler = @Sendable (_ progress: Progress) -> Void
+    @preconcurrency public typealias ProgressHandler = @Sendable (_ progress: Progress) -> Void
 
     /// `Progress` of the upload of the body of the executed `URLRequest`. Reset to `0` if the `Request` is retried.
     public let uploadProgress = Progress(totalUnitCount: 0)
@@ -533,6 +533,7 @@ public class Request: @unchecked Sendable {
     ///  - Note: This method will also `resume` the instance if `delegate.startImmediately` returns `true`.
     ///
     /// - Parameter closure: The closure containing the response serialization call.
+    @preconcurrency
     func appendResponseSerializer(_ closure: @escaping @Sendable () -> Void) {
         mutableState.write { mutableState in
             mutableState.responseSerializers.append(closure)
@@ -554,6 +555,7 @@ public class Request: @unchecked Sendable {
     /// Returns the next response serializer closure to execute if there's one left.
     ///
     /// - Returns: The next response serialization closure, if there is one.
+    @preconcurrency
     func nextResponseSerializer() -> (@Sendable () -> Void)? {
         var responseSerializer: (@Sendable () -> Void)?
 
@@ -572,7 +574,7 @@ public class Request: @unchecked Sendable {
     func processNextResponseSerializer() {
         guard let responseSerializer = nextResponseSerializer() else {
             // Execute all response serializer completions and clear them
-            var completions: [@Sendable () -> Void] = []
+            @preconcurrency var completions: [@Sendable () -> Void] = []
 
             mutableState.write { mutableState in
                 completions = mutableState.responseSerializerCompletions
@@ -607,6 +609,7 @@ public class Request: @unchecked Sendable {
     ///
     /// - Parameter completion: The completion handler provided with the response serializer, called when all serializers
     ///                         are complete.
+    @preconcurrency
     func responseSerializerDidComplete(completion: @escaping @Sendable () -> Void) {
         mutableState.write { $0.responseSerializerCompletions.append(completion) }
         processNextResponseSerializer()
@@ -1089,6 +1092,7 @@ public protocol RequestDelegate: AnyObject, Sendable {
     ///   - request:    `Request` which failed.
     ///   - error:      `Error` which produced the failure.
     ///   - completion: Closure taking the `RetryResult` for evaluation.
+    @preconcurrency 
     func retryResult(for request: Request, dueTo error: AFError, completion: @escaping @Sendable (RetryResult) -> Void)
 
     /// Asynchronously retry the `Request`.

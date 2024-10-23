@@ -321,6 +321,7 @@ public final class CompositeEventMonitor: EventMonitor {
         self.monitors = Protected(monitors)
     }
 
+    @preconcurrency
     func performEvent(_ event: @escaping @Sendable (any EventMonitor) -> Void) {
         queue.async {
             self.monitors.read { monitors in
